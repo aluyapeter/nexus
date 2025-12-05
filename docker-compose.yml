@@ -5,5 +5,21 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
+    depends_on:
+      - db
     environment:
-      - ENV_TYPE=development
+      - DATABASE_URL=postgresql://nexus_user:nexus_password@db:5432/nexus_db
+
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=nexus_user
+      - POSTGRES_PASSWORD=nexus_password
+      - POSTGRES_DB=nexus_db
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
