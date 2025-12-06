@@ -1,10 +1,20 @@
+import os
+import sys
+
+os.environ["SECRET_KEY"] = "super-secret-test-key-123"
+os.environ["ALGORITHM"] = "HS256"
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
+
 from app.main import app
 from app.database import Base, get_db
+
+
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
