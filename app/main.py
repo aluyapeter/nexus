@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import auth
+from .routers import auth, payments
 from .database import engine, Base
 
 Base.metadata.create_all(bind=engine)
@@ -7,6 +7,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Nexus API")
 
 app.include_router(auth.router)
+app.include_router(payments.router)
 
 @app.get("/")
 def health_check():
