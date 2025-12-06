@@ -20,8 +20,6 @@ class PaystackService:
             "email": email,
             "amount": amount_kobo,
             "reference": reference,
-            # callback_url for frontend redirection
-            # "callback_url": "http://localhost:8000/payment/callback" 
         }
         
         try:

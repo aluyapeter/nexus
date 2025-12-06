@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi.responses import RedirectResponse, JSONResponse
 from ..core import security
 from sqlalchemy.orm import Session
 import requests
@@ -39,7 +39,7 @@ def login_google():
     return RedirectResponse(url=base_url + params)
 
 @router.get("/google/callback")
-def callback_google(code: str, db: Session = Depends(get_db)):
+def callback_google(request: Request, code: str, db: Session = Depends(get_db)):
     token_url = "https://oauth2.googleapis.com/token"
     token_data = {
         "code": code,
@@ -79,6 +79,17 @@ def callback_google(code: str, db: Session = Depends(get_db)):
 
     access_token = security.create_access_token(data={"sub": str(db_user.id)})
 
+    accept_header = request.headers.get("Accept", "")
+
+    if "application/json" in accept_header:
+        return JSONResponse(content={
+            "user_id": db_user.id,
+            "email": db_user.email,
+            "name": db_user.full_name,
+            "access_token": access_token,
+            "token_type": "bearer"
+        })
+    
     response = RedirectResponse(url="http://localhost:8000/static/dashboard.html")
 
     is_production = os.getenv("ENVIRONMENT") == "production"
