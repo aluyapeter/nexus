@@ -4,6 +4,8 @@ import uuid
 from ..database import get_db
 from .. import models, schemas, crud, utils
 from ..services.paystack import PaystackService
+import requests 
+from ..services.paystack import PAYSTACK_SECRET_KEY
 from ..dependencies import get_current_user
 from datetime import datetime, timezone
 
@@ -79,10 +81,38 @@ async def paystack_webhook(
     return {"status": "success"}
 
 @router.get("/{reference}/status", response_model=schemas.TransactionResponse)
-def get_payment_status(reference: str, db: Session = Depends(get_db)):
-    transaction = db.query(models.Transaction).filter_by(reference=reference).first()
-    
+def get_payment_status(
+    reference: str, 
+    refresh: bool = False,
+    db: Session = Depends(get_db)
+):
+    transaction = db.query(models.Transaction).filter_by(
+            reference = reference
+        ).first()
+     
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
+
+    if refresh:
+        url = f"https://api.paystack.co/transaction/verify/{reference}"
+        headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
         
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                data = response.json().get("data", {})
+                paystack_status = data.get("status")
+
+                if paystack_status == "success":
+                    transaction.status = models.TransactionStatus.SUCCESS
+                    if data.get("paid_at"):
+                         pass 
+                elif paystack_status in ["failed", "abandoned"]:
+                    transaction.status = models.TransactionStatus.FAILED
+                
+                db.commit()
+                db.refresh(transaction)
+        except Exception as e:
+            print(f"Failed to refresh status: {e}")
+            
     return transaction
