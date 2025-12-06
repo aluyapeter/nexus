@@ -12,7 +12,7 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
-
+      - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY}
   db:
     image: postgres:15-alpine
     volumes:
