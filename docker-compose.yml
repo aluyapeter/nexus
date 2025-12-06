@@ -8,7 +8,10 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql://nexus_user:nexus_password@db:5432/nexus_db
+      - DATABASE_URL=${DATABASE_URL}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
 
   db:
     image: postgres:15-alpine
