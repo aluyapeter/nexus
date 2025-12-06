@@ -4,7 +4,8 @@ import uuid
 from ..database import get_db
 from .. import models, schemas, crud, utils
 from ..services.paystack import PaystackService
-from datetime import datetime
+from ..dependencies import get_current_user
+from datetime import datetime, timezone
 
 router = APIRouter(
     prefix="/payments",
@@ -14,17 +15,13 @@ router = APIRouter(
 @router.post("/paystack/initiate", response_model=schemas.PaymentResponse, status_code=status.HTTP_201_CREATED)
 def initiate_payment(
     payment_in: schemas.PaymentInitiate, 
-    user_id: int = 1, 
+    current_user: models.User = Depends(get_current_user), 
     db: Session = Depends(get_db)
 ):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
     tx_ref = str(uuid.uuid4())
 
     new_tx = models.Transaction(
-        user_id=user.id,
+        user_id=current_user.id,
         reference=tx_ref,
         amount=payment_in.amount,
         status=models.TransactionStatus.PENDING
@@ -35,7 +32,7 @@ def initiate_payment(
     paystack = PaystackService()
     try:
         auth_url = paystack.initiate_transaction(
-            email=user.email,
+            email=current_user.email,
             amount_kobo=payment_in.amount,
             reference=tx_ref
         )
@@ -75,7 +72,7 @@ async def paystack_webhook(
         
         if transaction:
             transaction.status = models.TransactionStatus.SUCCESS
-            transaction.paid_at = datetime.utcnow()
+            transaction.paid_at = datetime.now(timezone.utc)
             db.commit()
             print(f"Payment confirmed for {reference}")
             

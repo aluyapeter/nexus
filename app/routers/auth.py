@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import RedirectResponse
+from ..core import security
 from sqlalchemy.orm import Session
 import requests
 from dotenv import load_dotenv
@@ -37,12 +38,8 @@ def login_google():
     
     return RedirectResponse(url=base_url + params)
 
-@router.get("/google/callback", response_model=schemas.UserResponse)
+@router.get("/google/callback")
 def callback_google(code: str, db: Session = Depends(get_db)):
-    """
-    Handling the callback, exchange code for token, and fetch user info.
-    """
-
     token_url = "https://oauth2.googleapis.com/token"
     token_data = {
         "code": code,
@@ -56,11 +53,11 @@ def callback_google(code: str, db: Session = Depends(get_db)):
     
     if token_res.status_code != 200:
         raise HTTPException(status_code=400, detail="Failed to get access token from Google")
-        
-    access_token = token_res.json().get("access_token")
+    
+    google_access_token = token_res.json().get("access_token")
     
     user_info_url = "https://www.googleapis.com/oauth2/v1/userinfo"
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = {"Authorization": f"Bearer {google_access_token}"}
     
     user_res = requests.get(user_info_url, headers=headers)
     
@@ -79,5 +76,20 @@ def callback_google(code: str, db: Session = Depends(get_db)):
             profile_picture=google_user.get("picture")
         )
         db_user = crud.create_user(db, user_in)
+
+    access_token = security.create_access_token(data={"sub": str(db_user.id)})
+
+    response = RedirectResponse(url="http://localhost:8000/static/dashboard.html")
+
+    is_production = os.getenv("ENVIRONMENT") == "production"
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_production,
+        samesite="lax",
+        max_age=1800
+    )
         
-    return db_user
+    return response

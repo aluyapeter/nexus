@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="script.js"></script>
+</head>
+<body>
+    <div class="card" id="loading">Loading...</div>
+
+    <div class="card" id="dashboard" style="display: none;">
+        <img id="avatar" src="" alt="Profile">
+        <h2 id="name"></h2>
+        <p id="email" style="color: gray;"></p>
+        <p>Status: <span style="color: green; font-weight: bold;">Authenticated</span></p>
+        
+        <hr>
+        
+        <h3>Add Funds</h3>
+        <input type="number" id="amountInput" placeholder="Enter amount (NGN)" min="100" value="50" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        <br>
+        <button onclick="initiatePayment()">Pay with Paystack</button>
+        <p id="msg" class="error"></p>
+    </div>
+</body>
+</html>

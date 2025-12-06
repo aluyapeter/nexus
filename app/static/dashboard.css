@@ -1,0 +1,13 @@
+body { font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f4f9;
+}
+
+.card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+img { border-radius: 50%; width: 100px; height: 100px; margin-bottom: 1rem; }
+button { background-color: #00C851; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 1rem; }
+button:hover { background-color: #007E33; }
+.error { color: red; margin-top: 1rem; font-size: 0.9rem; }
